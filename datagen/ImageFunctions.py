@@ -16,6 +16,7 @@ class ImageFunctions:
         pass
 
 
+
     def expectedBoundingBox(self, img,
         text = "Helo helo",
         startPostion = (50, 50),

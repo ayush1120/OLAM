@@ -23,47 +23,6 @@ log.setLevel(logging.DEBUG)
 # https://levelup.gitconnected.com/how-to-properly-calculate-text-size-in-pil-images-17a2cc6f51fd
 
 
-def noisy(noise_typ,image):
-    
-    if noise_typ == "gauss":
-        row,col,ch= image.shape
-        mean = 0
-        var = 0.1
-        sigma = var**0.5
-        gauss = np.random.normal(mean,sigma,(row,col,ch))
-        gauss = gauss.reshape(row,col,ch).astype('uint8')
-        noisy = cv2.add(image, gauss)
-        return noisy
-    elif noise_typ == "s&p":
-        row,col,ch = image.shape
-        s_vs_p = 0.5
-        amount = 0.004
-        out = np.copy(image)
-        # Salt mode
-        num_salt = np.ceil(amount * image.size * s_vs_p)
-        coords = [np.random.randint(0, i - 1, int(num_salt))
-                for i in image.shape]
-        out[coords] = 1
-
-        # Pepper mode
-        num_pepper = np.ceil(amount* image.size * (1. - s_vs_p))
-        coords = [np.random.randint(0, i - 1, int(num_pepper))
-                for i in image.shape]
-        out[coords] = 0
-        return out
-    elif noise_typ == "poisson":
-        vals = len(np.unique(image))
-        vals = 2 ** np.ceil(np.log2(vals))
-        noisy = np.random.poisson(image * vals) / float(vals)
-        return noisy
-    elif noise_typ =="speckle":
-        row,col,ch = image.shape
-        gauss = np.random.randn(row,col,ch)
-        gauss = gauss.reshape(row,col,ch)        
-        noisy = image + image * gauss
-        return noisy
-
-
     
 if __name__ == '__main__':
     
@@ -72,7 +31,7 @@ if __name__ == '__main__':
     imageGen = ImageGenerator()
 
     imageSize = (1080, 720)
-    backgroundColor = (0, 255, 255)
+    backgroundColor = (255, 255, 255)
     
     img = imageGen.createBackgroundImage(size=imageSize, color=backgroundColor)
     background = img[:,:,:].copy()
@@ -81,18 +40,30 @@ if __name__ == '__main__':
 
     textGenerator = TextGenerator()
 
-    text = textGenerator.getRandomText()
+    # text = textGenerator.getRandomText()
     # text = 'उधर, ईरान ने परमाणु बम बनाने से इंकार किया है और कहा है कि उसका परमाणु कार्यक्रम शातिपूर्ण उद्देश्य के लिए है।'
+
+    text = '''पूर्व पाकिस्तानी कप्तान अकरम ने कहा कि यदि खिलाड़ी दबाव भूलना भी चाहे तो दर्शक, क्रिकेट प्रेमी और मीडिया ऐसा नहीं करने देता है। उन्होंने कहा, लोग कहते हैं कि एशेज में बहुत दबाव होता है लेकिन भारत पाकिस्तान के मैचों में जितना दबाव होता उतना किसी अन्य के साथ खेलने में नहीं होता है। हर खिलाड़ी इन मैचों में अच्छा प्रदर्शन करना चाहता है। 
+- मार्केट में एक्सफोलिएटिंग लिप स्क्रब आसानी से मिल जाएंगे। नहीं, तो आप बच्चों के मुलायम ब्रिसल वाले ब्रश को गोलाई में घुमाते हुए स्क्रब करें।
+पूर्वी कैनाल मार्ग-
+संपत्ति लंबे समय में बनाई जाती है और इस काम को मौजूदा जीवनशैली से समझौता करके नहीं किया जाना चाहिए। हमारे निवेश का तरीका कुछ ऐसा होना चाहिए कि निवेश से मिलने वाले रिटर्न की रकम मुद्रास्फीति यानी महंगाई दर से अधिक हो, और यही है संपत्ति सृजन का तरीका, अन्यथा मुद्रास्फीति संपत्ति को गटक जाएगी।
+-amazon.com के किंडल ई-रीडर्स पर अब हैरी पॉटर की ई किताबें पढ़ी जा सकेंगी। कंपनी ने जे. के. रोलिंग की हैरी पॉटर सीरीज के एक लिए एक खास लाइसेंस हासिल किया है। इसके बाद हैरी पॉटर की सभी सात किताबें किंडल प्लैटफॉर्म पर उपलब्ध होंगी। इसकी शुरुआत 19 जून से होगी।
+शिमला डिवीजन में 140 रूट रद्द हुए।'''
+
+    text = str(text)
 
     log.debug('Text Initialized')
 
     fontPath = os.path.join(os.getcwd(), 'hindiFonts', 'NotoSans-Regular.ttf')
-    fontSize = 5
+    fontSize = 20
 
     log.debug('Font Initialized')
 
+    startPostion=(100, 70)
+    maxWidth = int(0.6*imageSize[1])
 
-    img = imageGen.addText(img, text = text, fontPath=fontPath, fontSize=40)
+    img = imageGen.addText(img, text = text, fontPath=fontPath, fontSize=fontSize, startPostion=startPostion, maxWidth=maxWidth)
+
 
     # text = text.replace(' ', '\n')
     # print(text)
@@ -105,16 +76,34 @@ if __name__ == '__main__':
     
     box1 = imgProcess.differenceBoundingBox(img, background, padding=0)
     
+    font = ImageFont.truetype(fontPath , size=fontSize, layout_engine=ImageFont.LAYOUT_RAQM)
+
+    
+    textLines = imageGen.textwrap(text, font, maxWidth)
+    bboxes = imageGen.getBoundingBoxes(textLines, startPostion=startPostion, fontPath=fontPath, fontSize=fontSize)
+
+    boxes = []
+    for item in  bboxes["lines"]:
+        boxes.append(item['bounding_box'])
+    for item in  bboxes["text"]:
+        boxes.append(item)
+
+    num = len(boxes)
+    labels = [f'Line {i}' for i in range(1, num)]
+    labels.append('Text Box')
+
     imgNoBoundingBox = img[:,:,:].copy()
     # imageGen.showImage(imgNoBoundingBox)
 
+    newImg = imageGen.drawBoundingBoxes(imgNoBoundingBox, boxes, labels=labels)
+    imageGen.showImage(newImg)
 
-    img = imageGen.drawBoundingBox(img, box1)
-    imageGen.showImage(img)
-    cv2.imwrite(f'Screenshot_{int(time.time())}.jpeg', img)
+    # img = imageGen.drawBoundingBox(img, box1)
+    # imageGen.showImage(img)
+    # cv2.imwrite(f'Screenshot_{int(time.time())}.jpeg', img)
 
-    noiseAmount = 0.3
-    noisyImage = random_noise(imgNoBoundingBox, mode='s&p', amount=noiseAmount)
+    noiseAmount = 0.1
+    noisyImage = random_noise(imgNoBoundingBox, mode='poisson')
     noisyImage = np.array(255*noisyImage, dtype = 'uint8')
     noisyImage = imageGen.drawBoundingBox(noisyImage, box1)
     cv2.imwrite(f'Screenshot_noisy_{int(time.time())}.jpeg', noisyImage)

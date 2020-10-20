@@ -66,6 +66,7 @@ class ImageGenerator:
             color = (0, 0, 0),
             fontPath = os.path.join('font', 'Roboto-Bold.ttf'),
             fontSize = 45,
+            lineMargin = 1,
             maxWidth = None):
             
         # openCV to PIL
@@ -83,17 +84,90 @@ class ImageGenerator:
         # textwrap
         lines = self.textwrap(text, font, maxWidth)
 
+        _, descent = font.getmetrics()
+
 
         #draw the message on the backgroundImage
         draw = ImageDraw.Draw(img)
         for line in lines:
-            lineHeight = font.getsize(line)[1]
+            lineHeight = font.getsize(line)[1] + descent + lineMargin
             draw.text((x,y), line, fill=color, font=font)        
             y = y + lineHeight
-        
+            
+
         # PIL to openCV
         img = np.asarray(img)
         return img
+
+
+    def getBoundingBoxes(self, textLines,
+            startPostion = (50, 50),
+            fontPath = os.path.join('font', 'Roboto-Bold.ttf'),
+            fontSize = 45,
+            lineMargin = 1):
+        
+        bboxes = {
+            "text" : [],
+            "lines" : []
+        } 
+
+        font = ImageFont.truetype(fontPath , size=fontSize, layout_engine=ImageFont.LAYOUT_RAQM)
+
+        marginX = 2
+        marginY = 2
+
+        startX = max(0, startPostion[0] - marginX) 
+        startY = max(0, startPostion[1] - marginY)
+
+        y = startY
+        lineStart = (startPostion[0], startPostion[1])
+        (x,y) = (startPostion[0], startPostion[1])
+        ascent, descent = font.getmetrics()
+
+        endX = 0
+        endY = 0
+        log.debug(len(textLines))
+
+        for i , line in enumerate(textLines):
+            lineStartX = max(0, x - marginX)
+            lineStartY = max(0, y - marginY)
+            
+            lineSize = font.getsize(line)
+
+            lineEndX = x + lineSize[0] + marginX
+            lineEndY = y + lineSize[1] + descent + lineMargin + marginY
+
+            lineHeight = font.getsize(line)[1] + descent + lineMargin   
+            
+
+            endX = max(lineEndX, endX)
+            endY = max(lineEndY, endY)
+
+            y = y + lineHeight
+            
+            box = BBox2D([lineStartY,
+                      lineStartX,
+                      lineEndY,
+                      lineEndX], mode=XYXY) 
+            
+            details = {
+                'line_num' : i+1,
+                'bounding_box' : box
+            }
+
+            bboxes['lines'].append(details)
+            
+
+        box = BBox2D([startY,
+                      startX,
+                      endY,
+                      endX], mode=XYXY)
+        bboxes["text"].append(box)
+
+        return bboxes        
+
+        
+
 
 
     def drawBoundingBox(self, img, box, color=(25, 121, 67), thickness=2,

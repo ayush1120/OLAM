@@ -144,6 +144,7 @@ datagen/hindiFonts
 datagen/*.jpeg
 datagen/*.png
 datagen/out_images
+*.pdf
 *.ttf
 
 
