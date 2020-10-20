@@ -26,34 +26,73 @@ class ImageGenerator:
         backgroundImage[:, :] = color
         return backgroundImage
 
+
+    def getTextSize(self, text = "Helo helo",
+            fontPath = os.path.join('font', 'Roboto-Bold.ttf'),
+            fontSize = 45):
+        
+        font = ImageFont.truetype(fontPath , size=fontSize, layout_engine=ImageFont.LAYOUT_RAQM)
+        return font.getsize(text)  # (Width, Height)
+
+    
+
+
+    def textwrap(self, text, font, maxWidth):
+        lines = []
+        if font.getsize(text)[0] <= maxWidth:
+            lines.append(text)
+        else:
+            # split the line by spaces to get words
+            words = text.split(' ')  
+            i = 0
+            # append every word to a line while its width is shorter than image width
+            while i < len(words):
+                line = ''        
+                while i < len(words) and font.getsize(line + words[i])[0] <= maxWidth:                
+                    line = line + words[i] + " "
+                    i += 1
+                if not line:
+                    line = words[i]
+                    i += 1
+                # when the line gets longer than the max width do not append the word,
+                # add the line to the lines array
+                lines.append(line)    
+        return lines
+
+
     def addText(self, img,
             text = "Helo helo",
             startPostion = (50, 50),
             color = (0, 0, 0),
             fontPath = os.path.join('font', 'Roboto-Bold.ttf'),
-            fontSize = 45):
+            fontSize = 45,
+            maxWidth = None):
             
         # openCV to PIL
         img = Image.fromarray(img)
         font = ImageFont.truetype(fontPath , size=fontSize, layout_engine=ImageFont.LAYOUT_RAQM)
 
-
-
         # starting postion 
         x,y = startPostion 
         color = 'rgb' + str(color)
 
+        # maxWidth
+        if maxWidth is None:
+            maxWidth = int(0.75*img.size[0])
+        
         # textwrap
-        textSize = font.getsize(text)
-        log.debug(textSize)
+        lines = self.textwrap(text, font, maxWidth)
+
 
         #draw the message on the backgroundImage
         draw = ImageDraw.Draw(img)
-        draw.text((x,y), text, fill=color, font=font)        
+        for line in lines:
+            lineHeight = font.getsize(line)[1]
+            draw.text((x,y), line, fill=color, font=font)        
+            y = y + lineHeight
         
         # PIL to openCV
         img = np.asarray(img)
-
         return img
 
 

@@ -26,7 +26,6 @@ class TextGenerator:
         return self.data.text.loc[index]
         
 
-
     def loadDatabase(self):
         if self.dBType == 'HC Corpora':
             self.loadHCDatabase()
