@@ -114,16 +114,20 @@ venv.bak/
 .spyderproject
 .spyproject
 
+
 # Rope project settings
 .ropeproject
 
+
 # mkdocs documentation
 /site
+
 
 # mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
 
 # Pyre type checker
 .pyre/
@@ -132,6 +136,7 @@ dmypy.json
 # Additions
 UCI
 envOLAM
+iitb_parallel
 hindi_corpus_2012_12_19.rar
 datagen/font
 datagen/hindi_corpus_2012_12_19
