@@ -141,6 +141,9 @@ hindi_corpus_2012_12_19.rar
 datagen/font
 datagen/hindi_corpus_2012_12_19
 datagen/hindiFonts
+datagen/*.jpeg
+datagen/*.png
+datagen/out_images
 *.ttf
 
 
