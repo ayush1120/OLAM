@@ -3,6 +3,7 @@ import cv2.cv2 as cv2
 import numpy as np
 import logging
 import json
+import random
 
 from PIL import Image, ImageDraw, ImageFont
 from bbox import BBox2D, XYXY
@@ -15,6 +16,8 @@ from logger import log
 log.setLevel(logging.DEBUG)
 
 
+random.seed(69)
+
 class ImageGenerator:
     
     def __init__(self):
@@ -26,37 +29,38 @@ class ImageGenerator:
         backgroundImage[:, :] = color
         return backgroundImage
 
-
+ 
     def getTextSize(self, text = "Helo helo",
             fontPath = os.path.join('font', 'Roboto-Bold.ttf'),
             fontSize = 45):
         
-        font = ImageFont.truetype(fontPath , size=fontSize, layout_engine=ImageFont.LAYOUT_RAQM)
+        font = ImageFont.truetype(fontPath , size=fontSize, layout_engine=ImageFont.LAYOUT_RAQM )
         return font.getsize(text)  # (Width, Height)
 
-    
 
 
     def textwrap(self, text, font, maxWidth):
         lines = []
-        if font.getsize(text)[0] <= maxWidth:
-            lines.append(text)
-        else:
-            # split the line by spaces to get words
-            words = text.split(' ')  
-            i = 0
-            # append every word to a line while its width is shorter than image width
-            while i < len(words):
-                line = ''        
-                while i < len(words) and font.getsize(line + words[i])[0] <= maxWidth:                
-                    line = line + words[i] + " "
-                    i += 1
-                if not line:
-                    line = words[i]
-                    i += 1
-                # when the line gets longer than the max width do not append the word,
-                # add the line to the lines array
-                lines.append(line)    
+        para = text.split('\n')
+        for textLine in para: 
+            if font.getsize(textLine)[0] <= maxWidth:
+                lines.append(textLine)
+            else:
+                # split the line by spaces to get words
+                words = textLine.split(' ')  
+                i = 0
+                # append every word to a line while its width is shorter than image width
+                while i < len(words):
+                    line = ''        
+                    while i < len(words) and font.getsize(line + words[i])[0] <= maxWidth:                
+                        line = line + words[i] + " "
+                        i += 1
+                    if not line:
+                        line = words[i]
+                        i += 1
+                    # when the line gets longer than the max width do not append the word,
+                    # add the line to the lines array
+                    lines.append(line)    
         return lines
 
 
@@ -66,7 +70,6 @@ class ImageGenerator:
             color = (0, 0, 0),
             fontPath = os.path.join('font', 'Roboto-Bold.ttf'),
             fontSize = 45,
-            lineMargin = 1,
             maxWidth = None):
             
         # openCV to PIL
@@ -86,6 +89,7 @@ class ImageGenerator:
 
         _, descent = font.getmetrics()
 
+        lineMargin = self.getLineMargin(font)
 
         #draw the message on the backgroundImage
         draw = ImageDraw.Draw(img)
@@ -99,6 +103,52 @@ class ImageGenerator:
         img = np.asarray(img)
         return img
 
+    def getMargin(self, font):
+        word = 'word'
+        wordSize = font.getsize(word)
+        marginX = int(wordSize[0]/16)
+        marginY = int(wordSize[1]/10)
+        return (marginX, marginY)
+
+    def getLineMargin(self, font):
+        word = 'word'
+        wordSize = font.getsize(word)
+        lineMargin = max(1, int(wordSize[1]/17))
+        return lineMargin
+    
+    def getSpaceWidth(self, font):
+        word1 = "hello"
+        word2 = word1 + " " + word1
+        word1Size = font.getsize(word1)
+        word2Size = font.getsize(word2)
+        spaceWidth = word2Size[0] - 2*word1Size[0]
+        return spaceWidth 
+
+    def getSpaceWidthByWords(self, font, word1, word2):
+        sent = word1 + " " + word2
+        word1Size = font.getsize(word1)
+        word2Size = font.getsize(word2)
+        sentSize = font.getsize(sent)
+        spaceWidth = sentSize[0] - word2Size[0] - word1Size[0]
+        return spaceWidth 
+
+    def getWordMargin(self, font):
+        spaceWidth = self.getSpaceWidth(font)
+        _, marginY = self.getMargin(font)
+        marginX = max(spaceWidth // 3, 1) 
+        marginY = max(marginY, 1)
+        return (marginX, marginY)
+
+    def getBoundingBox(self, startPostion = (0,0), textSize = (4, 8)):
+        startX = startPostion[0]
+        startY = startPostion[1]
+        endX = startPostion[0] + textSize[0]
+        endY = startPostion[1] + textSize[1]
+        box = BBox2D([startY,
+                      startX,
+                      endY,
+                      endX], mode=XYXY)
+        return box
 
     def getBoundingBoxes(self, textLines,
             startPostion = (50, 50),
@@ -113,8 +163,7 @@ class ImageGenerator:
 
         font = ImageFont.truetype(fontPath , size=fontSize, layout_engine=ImageFont.LAYOUT_RAQM)
 
-        marginX = 2
-        marginY = 2
+        marginX, marginY = self.getMargin(font=font)
 
         startX = max(0, startPostion[0] - marginX) 
         startY = max(0, startPostion[1] - marginY)
@@ -190,6 +239,8 @@ class ImageGenerator:
         
         n = len(boxes)
         colors = get_colors(n)
+        random.shuffle(colors)
+
         for i, box in enumerate(boxes):
             label = None
             if labels is not None:

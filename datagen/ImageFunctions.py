@@ -9,12 +9,10 @@ from bbox import BBox2D, XYXY
 from utils import get_colors
 
 
-
 class ImageFunctions:
     
     def __init__(self):
         pass
-
 
 
     def expectedBoundingBox(self, img,

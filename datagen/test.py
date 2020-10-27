@@ -50,6 +50,9 @@ if __name__ == '__main__':
 -amazon.com के किंडल ई-रीडर्स पर अब हैरी पॉटर की ई किताबें पढ़ी जा सकेंगी। कंपनी ने जे. के. रोलिंग की हैरी पॉटर सीरीज के एक लिए एक खास लाइसेंस हासिल किया है। इसके बाद हैरी पॉटर की सभी सात किताबें किंडल प्लैटफॉर्म पर उपलब्ध होंगी। इसकी शुरुआत 19 जून से होगी।
 शिमला डिवीजन में 140 रूट रद्द हुए।'''
 
+#     text = '''पूर्व पाकिस्तानी कप्तान अकरम ने कहा कि यदि खिलाड़ी दबाव भूलना भी चाहे तो दर्शक, क्रिकेट प्रेमी और मीडिया ऐसा नहीं करने देता है। उन्होंने कहा, लोग कहते हैं कि एशेज में बहुत दबाव होता है लेकिन भारत पाकिस्तान के मैचों में जितना दबाव होता उतना किसी अन्य के साथ खेलने में नहीं होता है। हर खिलाड़ी इन मैचों में अच्छा प्रदर्शन करना चाहता है। 
+# - मार्केट में एक्सफोलिएटिंग लिप स्क्रब आसानी से मिल जाएंगे। नहीं, तो आप बच्चों के मुलायम ब्रिसल वाले ब्रश को गोलाई में घुमाते हुए स्क्रब करें।'''
+
     text = str(text)
 
     log.debug('Text Initialized')
@@ -106,7 +109,7 @@ if __name__ == '__main__':
     noisyImage = random_noise(imgNoBoundingBox, mode='poisson')
     noisyImage = np.array(255*noisyImage, dtype = 'uint8')
     noisyImage = imageGen.drawBoundingBox(noisyImage, box1)
-    cv2.imwrite(f'Screenshot_noisy_{int(time.time())}.jpeg', noisyImage)
+    # cv2.imwrite(f'Screenshot_noisy_{int(time.time())}.jpeg', noisyImage)
     imageGen.showImage(noisyImage)
 
     # box2 = imgProcess.expectedBoundingBox(background, text=text, fontPath=fontPath, fontSize=20)

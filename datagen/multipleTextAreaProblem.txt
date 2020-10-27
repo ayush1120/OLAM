@@ -1,0 +1,34 @@
+To be solved in python : 
+
+Given a grid of size m x n.
+Also given a list of rectangles.
+
+listOfRectangles =  [  
+    # [ Co-ordinate of left-top vertex , Co-ordinate of right-bottom vertex ]
+    [ (x11, y11), (x12, y12) ]  # Rectangle 1
+    [ (x21, y21), (x22, y22) ]  # Rectangle 2
+    [ (x31, y31), (x32, y32) ]  # Rectangle 3
+    [ (x41, y41), (x42, y42) ]  # Rectangle 4
+]
+
+Given Constraint: All the given rectangles are inside the grid. 
+Give a python function to generate a rectangle of given width w such that it doesn't 
+have any intersection area with any of the given rectangles.
+
+Case 1: All rectangles have their axes perpendicular to the x & y-axis.
+Case 1 Constraint: Output Rectangle should also have its axes perpendicular to x&y.
+
+Input :  grid size {(m,n)}, list of rectangles as input, Required width w 
+Output : ( bool, [ Co-ordinate of left-top vertex , Co-ordinate of right-bottom vertex ])
+
+** If such a rectangle is not possible, then output:  (False, None)
+** all the coordinates are of the form (x,y). width is along the x-direction. 
+
+
+Case 2: Rectangles may be  rotated
+Case 2 Constraint: Output Rectangle ca be rotated: 
+
+Input pattern will change for the list of rectangles like  
+(** tentative) listOfRectangles =  [  
+    # [ Co-ordinate of left-top vertex , Co-ordinate of right-bottom vertex, theta ]
+similar for output Rectangle.
