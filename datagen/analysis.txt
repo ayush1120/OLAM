@@ -2,11 +2,9 @@
 2. Consonant ke aage maatra and number of matra 
 3. Aadha Vowel | ❌ 
 4. Aadha Consonant + Matra
-5. Aadha Consonant + Vowel | ❌ 
+5. Aadha Consonant + Vowel | ❌  
 6. Starting with Matra | ❌ 
 7. Frequency of each Consonant (solo)
 8. Frequency of Consonant and Vowel Combination
     का  
     -- Cons + Matra1 + Matra2
-
-para.strip().split()

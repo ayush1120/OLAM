@@ -3,7 +3,8 @@ import logging
 import numpy as np
 import time
 import cv2.cv2 as cv2
-from PIL import Image, ImageFont
+import random
+from PIL import Image, ImageFont, ImageOps
 from skimage.util import random_noise
 from bbox import BBox2D, XYXY
 
@@ -11,11 +12,12 @@ from bbox import BBox2D, XYXY
 from logger import log
 from ImageGenerator import ImageGenerator
 from ImageFunctions import ImageFunctions
+from textGenerator import TextGenerator
 
 log.setLevel(logging.DEBUG)
 
 imageGen = ImageGenerator()
-imageSize = (1080, 720)
+imageSize = (736, 1104) # (width, height)
 backgroundColor = (255, 255, 255)
 
 img = imageGen.createBackgroundImage(size=imageSize, color=backgroundColor)
@@ -31,13 +33,22 @@ text = '''मनुष्य अपने स्वार्थ सिद्ध�
 
 # text = '''शिकार हो जाते है।  हर तरफ  त्र्याही त्र्याही मच जाती है।'''
 
+textGenerator = TextGenerator()
+text = textGenerator.getRandomText()
+
+# text = '''शिकार हो जाते है।  हर तरफ  त्र्याही त्र्याही मच जाती है।'''
+
 fontPath = os.path.join(os.getcwd(), 'hindiFonts', 'NotoSans-Regular.ttf')
-fontSize = 25
+fontSize = 35
 
 font = ImageFont.truetype(fontPath , size=fontSize, layout_engine=ImageFont.LAYOUT_RAQM)
 
 startPostion=(100, 70)
-maxWidth = int(0.6*imageSize[1])
+maxWidth = int(0.6*imageSize[0])
+
+maxWidthFactor = 0.3 + (0.65*random.random())
+maxWidth = maxWidthFactor*imageSize[0]
+
 
 img = imageGen.addText(img, text = text, fontPath=fontPath, fontSize=fontSize,
         startPostion=startPostion, maxWidth=maxWidth)
@@ -64,8 +75,6 @@ myTextSize = font.getsize(myLine)
 log.debug(f'My line size : {myTextSize}')
 
 
-
-
 from dataBox import TextBox
 textBox = TextBox(text=text, fontPath=fontPath, fontSize=fontSize,
             maxWidth=maxWidth, imageGen=imageGen)
@@ -79,7 +88,7 @@ twoLine1Words = line1Words[0] + ' ' + line1Words[1]
 bbox2 = imageGen.getBoundingBox(startPostion=startPostion, textSize=font.getsize(twoLine1Words))
 # space bbox
 spaceWidth = imageGen.getSpaceWidth(font)
-bbox3 = BBox2D([bbox1.x1, bbox1.y2, bbox1.x2, bbox1.y2 + spaceWidth], mode=XYXY)
+bbox3 = BBox2D([bbox1.x2, bbox1.y1, bbox1.x2+spaceWidth, bbox1.y2], mode=XYXY)
 # log.debug( f"spaceWidth : {spaceWidth}" )
 # log.debug( f"x1 : {bbox3.x1}" )
 # log.debug( f"y1 : {bbox3.y1}" )
@@ -106,8 +115,8 @@ for item in otherBoxes:
 #             fontSize=fontSize)
 
 boxes = []
-# boxes = lineBBoxes
-# boxes.append(textBBox)
+boxes = lineBBoxes
+boxes.append(textBBox)
 boxes.extend(wordBBoxes)
 
 # boxes = [bbox1, bbox2, bbox3]
@@ -126,7 +135,6 @@ labels.append('Text Box')
 
 
 
-
 # imgNoBoundingBox = img
 imgNoBoundingBox = img[:,:,:].copy()
 # imageGen.showImage(imgNoBoundingBox, 'Without Bounding Boxes')
@@ -142,20 +150,30 @@ fileName = f'Screenshot_All_Bounding_Boxes_{timeString}.jpeg'
 filePath = os.path.join('out_images', fileName)
 imageGen.showImage(newImg, windowName=fileName)
 
-cv2.imwrite(filePath, newImg)
+# cv2.imwrite(filePath, newImg)
 
 
-noiseAmount = 0.1
+noiseAmount = 0.2
 noisyImage = random_noise(imgNoBoundingBox, mode='poisson')
 noisyImage = np.array(255*noisyImage, dtype = 'uint8')
 
-for i in range(5):
+for i in range(2):
         noisyImage = random_noise(noisyImage, mode='poisson')
         noisyImage = np.array(255*noisyImage, dtype = 'uint8')
+
+noisyImage = random_noise(noisyImage, mode='s&p', amount=noiseAmount)
+noisyImage = np.array(255*noisyImage, dtype='uint8')
+
+grayImage = cv2.cvtColor(noisyImage, cv2.COLOR_BGR2GRAY)
 
 noisyImage = imageGen.drawBoundingBoxes(noisyImage, boxes)
 # imageGen.showImage(noisyImage)
 
 noisyFileName = f'Screenshot_Noisy_All_Bounding_Boxes_{timeString}.jpeg'
 filePath = os.path.join('out_images', noisyFileName)
-cv2.imwrite(filePath, noisyImage)
+# cv2.imwrite(filePath, noisyImage)
+
+
+grayImage = cv2.cvtColor(grayImage, cv2.COLOR_GRAY2BGR)
+grayImage = imageGen.drawBoundingBoxes(grayImage, boxes)
+imageGen.showImage(grayImage)

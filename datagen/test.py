@@ -14,7 +14,7 @@ from ImageFunctions import ImageFunctions
 from textGenerator import TextGenerator
 
 
-from utils import get_colors
+from olamUtils import get_colors
 from logger import log
 log.setLevel(logging.DEBUG)
 
@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     imageGen = ImageGenerator()
 
-    imageSize = (1080, 720)
+    imageSize = (736, 1104) # (width, height)
     backgroundColor = (255, 255, 255)
     
     img = imageGen.createBackgroundImage(size=imageSize, color=backgroundColor)
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     log.debug('Font Initialized')
 
     startPostion=(100, 70)
-    maxWidth = int(0.6*imageSize[1])
+    maxWidth = int(0.6*imageSize[0])
 
     img = imageGen.addText(img, text = text, fontPath=fontPath, fontSize=fontSize, startPostion=startPostion, maxWidth=maxWidth)
 

@@ -6,7 +6,7 @@ import json
 from PIL import Image, ImageDraw, ImageFont
 from bbox import BBox2D, XYXY
 
-from utils import get_colors
+from olamUtils import get_colors
 
 
 class ImageFunctions:

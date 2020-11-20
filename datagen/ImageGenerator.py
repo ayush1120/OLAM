@@ -7,7 +7,7 @@ import random
 
 from PIL import Image, ImageDraw, ImageFont
 from bbox import BBox2D, XYXY
-from utils import get_colors
+from olamUtils import get_colors
 import textwrap
 
 
@@ -16,15 +16,13 @@ from logger import log
 log.setLevel(logging.DEBUG)
 
 
-random.seed(69)
-
 class ImageGenerator:
     
     def __init__(self):
         pass
 
     def createBackgroundImage(self, size=(200, 400), color=(255, 255, 255)):
-        height, width = size
+        width, height = size
         backgroundImage = np.zeros((height,width,3), np.uint8)
         backgroundImage[:, :] = color
         return backgroundImage
@@ -71,7 +69,12 @@ class ImageGenerator:
             fontPath = os.path.join('font', 'Roboto-Bold.ttf'),
             fontSize = 45,
             maxWidth = None):
-            
+        
+        imageSize = img.shape
+        imageHeight, imageWidth, _ = imageSize
+
+        log.debug(f'imageSize : {imageSize}')
+
         # openCV to PIL
         img = Image.fromarray(img)
         font = ImageFont.truetype(fontPath , size=fontSize, layout_engine=ImageFont.LAYOUT_RAQM)
@@ -82,7 +85,8 @@ class ImageGenerator:
 
         # maxWidth
         if maxWidth is None:
-            maxWidth = int(0.75*img.size[0])
+            maxWidthFactor = 0.3 + (0.65*random.random())
+            maxWidth = maxWidthFactor*imageWidth
         
         # textwrap
         lines = self.textwrap(text, font, maxWidth)
@@ -144,10 +148,10 @@ class ImageGenerator:
         startY = startPostion[1]
         endX = startPostion[0] + textSize[0]
         endY = startPostion[1] + textSize[1]
-        box = BBox2D([startY,
-                      startX,
-                      endY,
-                      endX], mode=XYXY)
+        box = BBox2D([startX,
+                      startY,
+                      endX,
+                      endY], mode=XYXY)
         return box
 
     def getBoundingBoxes(self, textLines,
@@ -194,10 +198,10 @@ class ImageGenerator:
 
             y = y + lineHeight
             
-            box = BBox2D([lineStartY,
-                      lineStartX,
-                      lineEndY,
-                      lineEndX], mode=XYXY) 
+            box = BBox2D([lineStartX,
+                      lineStartY,
+                      lineEndX,
+                      lineEndY], mode=XYXY) 
             
             details = {
                 'line_num' : i+1,
@@ -207,10 +211,10 @@ class ImageGenerator:
             bboxes['lines'].append(details)
             
 
-        box = BBox2D([startY,
-                      startX,
-                      endY,
-                      endX], mode=XYXY)
+        box = BBox2D([startX,
+                      startY,
+                      endX,
+                      endY], mode=XYXY)
         bboxes["text"].append(box)
 
         return bboxes        
@@ -223,8 +227,8 @@ class ImageGenerator:
             label=None,
             fontFace = cv2.FONT_HERSHEY_PLAIN,
             fontScale = 0.9):
-        point1 = (int(box.y1), int(box.x1))
-        point2 = (int(box.y2), int(box.x2))
+        point1 = (int(box.x1), int(box.y1))
+        point2 = (int(box.x2), int(box.y2))
         img = cv2.rectangle(img, point1, point2, color, thickness=thickness)
         if label is not None:
             label_x = point1[0]
@@ -260,3 +264,59 @@ class ImageGenerator:
         cv2.imshow(windowName, img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+
+    def getSizeOnCavas(self, srcSize, canvasSize=(736, 96)):
+        srcWidth, srcHeight = srcSize
+        outWidth, outHeight = canvasSize
+        if srcHeight<outHeight and srcWidth<outWidth:
+            return srcSize
+        newHeight, newWidth = (outHeight, outWidth)
+        if srcHeight > outHeight:
+            newHeight = outHeight
+            newWidth = int((srcWidth*newHeight)/srcWidth)
+            srcHeight = newHeight
+            srcWidth = newWidth
+        if srcWidth > outWidth:
+            newHeight = (outWidth*srcHeight)/srcWidth
+            newWidth = outWidth
+            srcHeight = newHeight
+            srcWidth = newWidth
+        return (int(newWidth), int(newHeight))
+
+    def resizeImage(self, srcImage, outputSize=(736, 96)):
+        newImage = cv2.resize(srcImage, (outputSize[0], outputSize[1]))
+        return newImage
+        
+
+    def getStartingPointofRoi(self, bbox, canvasSize):
+        roiSize = (int(bbox.w), int(bbox.h))
+        roiSize = self.getSizeOnCavas(roiSize, canvasSize)
+        x = int(canvasSize[0] - roiSize[0])/2
+        y = int(canvasSize[1] - roiSize[1])/2
+        return (x, y)
+
+    def getROI(self, srcImage, bbox):
+        roi = srcImage[int(bbox.y1):int(bbox.y2), int(bbox.x1):int(bbox.x2)].copy()
+        return roi
+
+    def extractImageROI(self, srcImage, bbox, outImageSize= (736, 96), outImageBackgroundColor=(0,0,0)):
+        roi = srcImage[int(bbox.y1):int(bbox.y2), int(bbox.x1):int(bbox.x2)].copy()
+        # print(f'roi shape : {roi.shape}')
+        roiSize = (int(bbox.w), int(bbox.h))
+        newRoiSize = self.getSizeOnCavas(roiSize, outImageSize)
+        resizedRoi = self.resizeImage(roi, outputSize=newRoiSize)
+        backgroundImage = self.createBackgroundImage(size=outImageSize, color=outImageBackgroundColor)
+        img = backgroundImage
+        roiStartingPoint = self.getStartingPointofRoi(bbox, canvasSize=outImageSize)
+        roiWidth, roiHeight = newRoiSize
+
+        # print(f'resized roi shape : {resizedRoi.shape}')
+        # print(f'new roi shape : {newRoiSize}')
+
+        startX, startY = roiStartingPoint
+        # self.showImage(resizedRoi)
+        imgROI  = resizedRoi[int(0):int(0+roiHeight), int(0):int(0+roiWidth)]
+        # print(f'img roi shape : {imgROI.shape}')
+        img[int(startY):int(startY+roiHeight), int(startX):int(startX+roiWidth)] = resizedRoi
+        return img

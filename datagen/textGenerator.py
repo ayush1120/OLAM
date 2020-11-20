@@ -11,7 +11,7 @@ log.setLevel(logging.DEBUG)
 class TextGenerator:
 
     def __init__(self,
-            filePath=os.path.join(os.getcwd(), 'hindi_corpus_2012_12_19', 'Hi_Newspapers.txt'),
+            filePath=os.path.join('hindiTexts100.csv'),
             dbType='HC Corpora',
             log=log):
 
@@ -22,7 +22,7 @@ class TextGenerator:
 
     def getRandomText(self):
         size = len(self.data)
-        index  = random.randint(1, size)
+        index  = random.randint(1, size) - 1
         return self.data.text.loc[index]
         
 
@@ -32,9 +32,8 @@ class TextGenerator:
 
 
     def loadHCDatabase(self):
-        data = pd.read_csv(self.filePath, delimiter='\t', 
-            names=['source', 'date', 'unnamed_1', 'unnamed_2', 'text'])
-        self.data = data.loc[:,['source', 'date', 'text']]
+        data = pd.read_csv(self.filePath)
+        self.data = data
         return self.data
     
     

@@ -140,12 +140,21 @@ iitb_parallel
 wili-2018.zip
 wili-2018
 hindi_corpus_2012_12_19.rar
+to_submit
 datagen/font
 datagen/hindi_corpus_2012_12_19
 datagen/hindiFonts
 datagen/*.jpeg
 datagen/*.png
 datagen/out_images
+datagen/demo
+datagen/present
+datagen/data
+datagen/wordData
+datagen/hindiTexts.csv
+datagen/hindiTexts100.csv
+datagen/wordData.zip
+
 *.pdf
 *.ttf
 
