@@ -23,7 +23,7 @@ textLabelSaveDir = os.path.join('data', 'text', 'labels')
 lineImageSaveDir = os.path.join('data', 'lines', 'images')
 lineLabelSaveDir = os.path.join('data', 'lines', 'labels')
 total = 5000
-for i in range(95, 5000):
+for i in range(95, 1000):
     log.info(f'Image Done.... {i}/{total}')
     text = data[i]
     textImage = TextImage(imageGen=imageGen, imageIndex=i)

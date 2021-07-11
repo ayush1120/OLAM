@@ -47,17 +47,13 @@ class TextProcess:
         self.log.info("In preprocess function.")
         dataframe1 = self.remove_nan(dataframe)
         # dataframe2 = self.lowercase(dataframe1)
-        dataframe3 = self.remove_whitespace(dataframe1)
-        dataframe4 = self.remove_emails(self, dataframe3)
-        dataframe5 = self.remove_website_links(self, dataframe4)
-        dataframe6 = self.remove_special_characters(dataframe5)
         # dataframe7 - self.remove_numbers(dataframe6)
         # self.remove_stop_words(dataframe8) # Doesn't return anything for now
         # dataframe7 = self.tokenize(dataframe6)
 
         self.log.info(f"Sample of preprocessed data: {dataframe4.head()}")
 
-        return dataframe6
+        return dataframe1
 
     def remove_nan(self, dataframe):
         """Pass in a dataframe to remove NAN from those columns."""
@@ -87,9 +83,6 @@ class TextProcess:
         trimmed_spaces = merged_spaces.apply(lambda x: x.str.strip())
         return trimmed_spaces
 
-    def remove_stop_words(self, dataframe):
-        # TODO: An option to pass in a custom list of stopwords would be cool.
-        set(stopwords.words('english'))
 
     def remove_website_links(self, dataframe):
         self.log.info("Removing website links from dataframe")

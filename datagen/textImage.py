@@ -370,11 +370,12 @@ class TextImage:
 
 if __name__ == '__main__':
     imageGen = ImageGenerator()
-    textImage = TextImage(imageGen=imageGen, imageIndex=1, maxFontSize=50)
+    textImage = TextImage(imageGen=imageGen, imageIndex=1, maxFontSize=50, minFontSize=30)
     textGen = TextGenerator()
     text = textGen.getRandomText()
-    while(len(text) < 400):
-        text = textGen.getRandomText()
+    text = "ज्ञ"
+    # while(len(text) < 400):
+    #     text = textGen.getRandomText()
     save_dir = os.path.join(os.getcwd(), 'present')
     for i in range(1):
         imageIndex = f'present{i}_{random.randint(1,100)}' 
@@ -416,7 +417,8 @@ if __name__ == '__main__':
 
 
     # print(textImage.getBBoxData())
-    # imageGen.showImage(textImage.image)
-    
+    imageGen.showImage(textImage.image)
+    newImage = cv2.cvtColor(textImage.image, cv2.COLOR_BGR2GRAY)
+    imageGen.showImage(newImage)
     
 

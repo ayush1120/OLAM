@@ -155,7 +155,12 @@ datagen/hindiTexts.csv
 datagen/hindiTexts100.csv
 datagen/wordData.zip
 
+*.rar
 *.pdf
 *.ttf
+*.zip
+*.pptx
+.vscode
 
-
+Models/*
+models/*
